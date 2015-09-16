@@ -1,0 +1,10 @@
+*,v
+*.gz
+*.swp
+GenPDFWeasyPlugin.md5
+GenPDFWeasyPlugin.sha1
+GenPDFWeasyPlugin.tgz
+GenPDFWeasyPlugin.txt
+GenPDFWeasyPlugin.zip
+GenPDFWeasyPlugin_installer
+GenPDFWeasyPlugin_installer.pl
