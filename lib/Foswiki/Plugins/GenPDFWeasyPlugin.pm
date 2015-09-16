@@ -20,8 +20,8 @@ use warnings;
 
 use Foswiki::Func ();
 
-our $VERSION = '0.01';
-our $RELEASE = '0.01';
+our $VERSION = '1.00';
+our $RELEASE = '1.00';
 our $SHORTDESCRIPTION = 'Generate PDF using WeasyPrint';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseTopic;

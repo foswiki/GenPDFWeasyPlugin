@@ -63,7 +63,7 @@ $Foswiki::cfg{PluginsOrder} = 'SpreadSheetPlugin,PageOptimizerPlugin,NatSkinPlug
 ---++ Change History
 
 %TABLE{columnwidths="7em" tablewidth="100%"}%
-| | |
+| 16 Sep 2015 | initial release |
 
 %META:FORM{name="PackageForm"}%
 %META:FIELD{name="Author" title="Author" value="Michael Daum"}%
