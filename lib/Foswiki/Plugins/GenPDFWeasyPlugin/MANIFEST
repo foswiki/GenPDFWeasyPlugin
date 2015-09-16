@@ -1,0 +1,4 @@
+data/System/GenPDFWeasyPlugin.txt 0644
+lib/Foswiki/Plugins/GenPDFWeasyPlugin/Config.spec 0644
+lib/Foswiki/Plugins/GenPDFWeasyPlugin/DEPENDENCIES 0644
+lib/Foswiki/Plugins/GenPDFWeasyPlugin.pm 0644

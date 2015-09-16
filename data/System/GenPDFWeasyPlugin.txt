@@ -1,0 +1,76 @@
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1442419725" format="1.1"  version="1"}%
+---+!! %TOPIC%
+%$SHORTDESCRIPTION%
+
+%TOC%
+
+This plugin generates PDF using the third-party tool [[http://weasyprint.org/][WeasyPrint]]. 
+You will have to download this tool and install it on the Foswiki Server before being able to use it for Foswiki.
+
+---++ Usage
+
+Get a PDF by adding =contenttype=application/pdf= to the view url like this:
+<verbatim class="tml">
+%SCRIPTURL{"view"}/%WEB%/%TOPIC%?contenttype=application/pdf&cover=print
+</verbatim>
+
+Optionally an url parameter =outfile= can be used to specifiy the target filename of the pdf being generated.
+If not specified explicitly it defaults to =genpdf_%!TOPIC%.pdf=
+
+<verbatim class="tml">
+%SCRIPTURL{"view"}/%WEB%/%TOPIC%?contenttype=application/pdf&cover=print&outfile=myreport.pdf
+</verbatim>
+
+---++ Installation Instructions
+Installation instructions for =weasyprint= can be found on [[http://weasyprint.org/docs/install/][their site]].
+
+For a Debian/Ubuntu based installation use this:
+
+<verbatim class="bash">
+apt-get install python-dev python-pip python-lxml \
+                libcairo2 libpango1.0-0 libgdk-pixbuf2.0-0 \
+                libffi-dev shared-mime-info
+pip install WeasyPrint
+</verbatim>
+
+Test with 
+
+<verbatim class="bash">
+weasyprint --help
+</verbatim>
+
+Make sure that you record the full path to the binary and configure this plugin accordingly.
+
+<verbatim class="bash">
+which weasyprint
+</verbatim>
+
+Most probably, when installing =weasyprint= manually, this will be =/usr/local/bin/weasyprint= as is the default in this plugin's 
+configuration.
+
+If you are using other plugins that implement a =completePageHandler= (see InstalledPlugins) then you most
+probably need to tune the =$Foswiki::cfg{PluginsOrder}= to list the %TOPIC% behind those, for example like this:
+
+<verbatim>
+$Foswiki::cfg{PluginsOrder} = 'SpreadSheetPlugin,PageOptimizerPlugin,NatSkinPlugin,GenPDFWeasyPlugin,SlideShowPlugin';
+</verbatim>
+
+%$INSTALL_INSTRUCTIONS%
+
+---++ Dependencies
+%$DEPENDENCIES%
+
+---++ Change History
+
+%TABLE{columnwidths="7em" tablewidth="100%"}%
+| | |
+
+%META:FORM{name="PackageForm"}%
+%META:FIELD{name="Author" title="Author" value="Michael Daum"}%
+%META:FIELD{name="Version" title="Version" value="%25$VERSION%25"}%
+%META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
+%META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25$ROOTMODULE%25"}%
+%META:FIELD{name="Copyright" title="Copyright" value="2015 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
+%META:FIELD{name="Home" title="Home" value="http://foswiki.org/Extensions/%25$ROOTMODULE%25"}%
+%META:FIELD{name="Support" title="Support" value="http://foswiki.org/Support/%25$ROOTMODULE%25"}%
