@@ -1,6 +1,6 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1442419725" format="1.1"  version="1"}%
+%META:TOPICINFO{author="ProjectContributor" comment="" date="1468228032" format="1.1" version="1"}%
 ---+!! %TOPIC%
-%$SHORTDESCRIPTION%
+%FORMFIELD{"Description"}%
 
 %TOC%
 
@@ -55,22 +55,31 @@ probably need to tune the =$Foswiki::cfg{PluginsOrder}= to list the %TOPIC% behi
 $Foswiki::cfg{PluginsOrder} = 'SpreadSheetPlugin,PageOptimizerPlugin,NatSkinPlugin,GenPDFWeasyPlugin,SlideShowPlugin';
 </verbatim>
 
+---++ Fonts
+Note that =weasyprint= does not (yet) understand =@font-face=. To make use of custom fonts you will need to install them on the server itself.
+Recommended font packages on a debian/ubuntu system:
+
+<verbatim class="bash">
+apt-get install fonts-font-awesome fonts-lato fonts-roboto ttf-mscorefonts-installer
+</verbatim>
+
 %$INSTALL_INSTRUCTIONS%
 
 ---++ Dependencies
 %$DEPENDENCIES%
 
 ---++ Change History
-
 %TABLE{columnwidths="7em" tablewidth="100%"}%
-| 16 Sep 2015 | initial release |
+|  11 Jul 2016 | added option =pdfdisposition= to inline or redirect content; remove leftovers from copy-pasting <nop>GenPDFPrincePlugin |
+|  16 Sep 2015 | initial release |
 
 %META:FORM{name="PackageForm"}%
-%META:FIELD{name="Author" title="Author" value="Michael Daum"}%
+%META:FIELD{name="Author" title="Author" value="Michael Daum"}
 %META:FIELD{name="Version" title="Version" value="%25$VERSION%25"}%
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
+%META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25$ROOTMODULE%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="2015 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="Copyright" title="Copyright" value="2015-2016 Michael Daum http://michaeldaumconsulting.com"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
-%META:FIELD{name="Home" title="Home" value="http://foswiki.org/Extensions/%25$ROOTMODULE%25"}%
-%META:FIELD{name="Support" title="Support" value="http://foswiki.org/Support/%25$ROOTMODULE%25"}%
+%META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25$ROOTMODULE%25"}%
+%META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25$ROOTMODULE%25"}%

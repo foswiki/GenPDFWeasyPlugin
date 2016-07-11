@@ -1,6 +1,8 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# GenPDFWeasyPlugin is Copyright (C) 2015 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2015-2016 Michael Daum http://michaeldaumconsulting.com
+#
+# This license applies to GenPDFPrincePlugin *and also to any derivatives*
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,10 +21,16 @@ use strict;
 use warnings;
 
 use Foswiki::Func ();
+use Foswiki::Plugins ();
+use Foswiki::Sandbox ();
+use Foswiki::Plugins::JQueryPlugin ();
+use File::Path ();
+use Encode ();
+use File::Temp ();
 
-our $VERSION = '1.00';
-our $RELEASE = '1.00';
-our $SHORTDESCRIPTION = 'Generate PDF using WeasyPrint';
+our $VERSION = '2.00';
+our $RELEASE = '11 Jul 2016';
+our $SHORTDESCRIPTION = 'Generate PDF using <nop>WeasyPrint';
 our $NO_PREFS_IN_TOPIC = 1;
 our $baseTopic;
 our $baseWeb;
@@ -68,9 +76,9 @@ sub completePageHandler {
 
   my $content = $_[0];
 
- # convert to utf8
- $content = Encode::decode($siteCharSet, $content) unless $Foswiki::UNICODE;
- $content = Encode::encode_utf8($content);
+  # convert to utf8
+  $content = Encode::decode($siteCharSet, $content) unless $Foswiki::UNICODE;
+  $content = Encode::encode_utf8($content);
 
   # remove left-overs and some basic clean-up
   $content =~ s/([\t ]?)[ \t]*<\/?(nop|noautolink)\/?>/$1/gis;
@@ -79,9 +87,8 @@ sub completePageHandler {
   $content =~ s/(<\/html>).*?$/$1/gs;
   $content =~ s/^\s*$//gms;
 
-  # clean url params in anchors as prince can't generate proper xrefs otherwise;
-  # hope this gets fixed in prince at some time
-   $content =~ s/(href=["'])\?.*(#[^"'\s])+/$1$2/g;
+  # clean url params in anchors 
+  $content =~ s/(href=["'])\?.*(#[^"'\s])+/$1$2/g;
 
   # rewrite some urls to use file://..
   $content =~ s/(<link[^>]+href=["'])([^"']+)(["'])/$1.toFileUrl($2).$3/ge;
@@ -98,7 +105,7 @@ sub completePageHandler {
   print $htmlFile $content;
   writeDebug("htmlFile=" . $htmlFile->filename);
 
-  # create prince command
+  # create print command
   my $pubUrl = getPubUrl();
   my $cmd = $Foswiki::cfg{GenPDFWeasyPlugin}{WeasyCmd}
     || '/usr/local/bin/weasyprint --base-url %BASEURL|U% --media-type print --encoding utf-8 %INFILE|F% %OUTFILE|F%';
@@ -107,7 +114,7 @@ sub completePageHandler {
   writeDebug("BASEURL=$pubUrl");
 
   # execute
-  my ($output, $exit) = Foswiki::Sandbox->sysCommand(
+  my ($output, $exit, $error) = Foswiki::Sandbox->sysCommand(
     $cmd,
     BASEURL => $pubUrl,
     OUTFILE => $pdfFilePath,
@@ -118,24 +125,26 @@ sub completePageHandler {
 
   writeDebug("htmlFile=" . $htmlFile->filename);
   writeDebug("output=$output");
+  #writeDebug("exit=$exit");
+  #writeDebug("error=$error");
 
   if ($exit) {
-    my $html = $content;
-    my $line = 1;
-    $html = '00000: ' . $html;
-    $html =~ s/\n/"\n".(sprintf "\%05d", $line++).": "/ge;
-    throw Error::Simple("execution of prince failed ($exit): \n\n$output\n\n$html");
+    throw Error::Simple("execution of weasy failed ($exit) \n\n$error");
   }
 
-  # not using viewfile to let the web server decide how to deliver the static file
-  #my $url = Foswiki::Func::getScriptUrl($baseWeb, $baseTopic, 'viewfile',
-  #  filename=>$pdfFile,
-  #  t=>time(),
-  #);
-  my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
-
   my $query = Foswiki::Func::getCgiQuery();
-  Foswiki::Func::redirectCgiQuery($query, $url);
+  if (($query->param("pdfdisposition") || '') eq 'inline') {
+    my $session = $Foswiki::Plugins::SESSION;
+    my $pdf = readFile($pdfFilePath);
+    $session->{response}->body($pdf);
+
+    # SMELL: prevent compression
+    $ENV{'HTTP_ACCEPT_ENCODING'} = ''; 
+    $ENV{'HTTP2'} = ''; 
+  } else {
+    my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
+    Foswiki::Func::redirectCgiQuery($query, $url);
+  }
 }
 
 ###############################################################################
@@ -196,6 +205,23 @@ sub getPubUrl {
 
   # post 2.0
   return Foswiki::Func::getPubUrlPath(undef, undef, undef, absolute=>1);
+}
+
+###############################################################################
+sub readFile {
+  my $name = shift;
+  my $data = '';
+  my $IN_FILE;
+
+  open($IN_FILE, '<', $name) || return '';
+  binmode $IN_FILE;
+
+  local $/ = undef;    # set to read to EOF
+  $data = <$IN_FILE>;
+  close($IN_FILE);
+
+  $data = '' unless $data;    # no undefined
+  return $data;
 }
 
 1;
