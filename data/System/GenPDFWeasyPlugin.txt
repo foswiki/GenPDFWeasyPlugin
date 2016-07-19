@@ -74,7 +74,7 @@ apt-get install fonts-font-awesome fonts-lato fonts-roboto ttf-mscorefonts-insta
 |  16 Sep 2015 | initial release |
 
 %META:FORM{name="PackageForm"}%
-%META:FIELD{name="Author" title="Author" value="Michael Daum"}
+%META:FIELD{name="Author" title="Author" value="Michael Daum"}%
 %META:FIELD{name="Version" title="Version" value="%25$VERSION%25"}%
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
