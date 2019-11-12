@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2015-2016 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2015-2019 Michael Daum http://michaeldaumconsulting.com
 #
 # This license applies to GenPDFPrincePlugin *and also to any derivatives*
 #
@@ -23,18 +23,14 @@ use warnings;
 use Foswiki::Func ();
 use Foswiki::Plugins ();
 use Foswiki::Sandbox ();
-use Foswiki::Plugins::JQueryPlugin ();
 use File::Path ();
 use Encode ();
 use File::Temp ();
 
-our $VERSION = '2.00';
-our $RELEASE = '11 Jul 2016';
+our $VERSION = '2.01';
+our $RELEASE = '12 Nov 2019';
 our $SHORTDESCRIPTION = 'Generate PDF using <nop>WeasyPrint';
 our $NO_PREFS_IN_TOPIC = 1;
-our $baseTopic;
-our $baseWeb;
-our $doit = 0;
 
 use constant TRACE => 0; # toggle me
 
@@ -45,7 +41,6 @@ sub writeDebug {
 
 ###############################################################################
 sub initPlugin {
-  ($baseTopic, $baseWeb) = @_;
 
   if ($Foswiki::Plugins::VERSION < 2.0) {
     Foswiki::Func::writeWarning('Version mismatch between ',
@@ -55,12 +50,13 @@ sub initPlugin {
 
   my $query = Foswiki::Func::getCgiQuery();
   my $contenttype = $query->param("contenttype") || 'text/html';
+  my $context = Foswiki::Func::getContext();
 
   if ($contenttype eq "application/pdf") {
-    $doit = 1;
-    Foswiki::Func::getContext()->{static} = 1;
+    $context->{genpdf_doit} = 1;
+    $context->{static} = 1;
   } else {
-    $doit = 0;
+    $context->{genpdf_doit} = 0;
   }
 
   return 1;
@@ -70,15 +66,16 @@ sub initPlugin {
 sub completePageHandler {
   #my($html, $httpHeaders) = @_;
 
-  return unless $doit;
+  my $context = Foswiki::Func::getContext();
+  my $session = $Foswiki::Plugins::SESSION;
+  my $baseWeb = $session->{webName};
+  my $baseTopic = $session->{topicName};
+
+  return unless $context->{genpdf_doit};
 
   my $siteCharSet = $Foswiki::cfg{Site}{CharSet};
 
   my $content = $_[0];
-
-  # convert to utf8
-  $content = Encode::decode($siteCharSet, $content) unless $Foswiki::UNICODE;
-  $content = Encode::encode_utf8($content);
 
   # remove left-overs and some basic clean-up
   $content =~ s/([\t ]?)[ \t]*<\/?(nop|noautolink)\/?>/$1/gis;
@@ -86,6 +83,12 @@ sub completePageHandler {
   $content =~ s/[\0-\x08\x0B\x0C\x0E-\x1F\x7F]+/ /g;
   $content =~ s/(<\/html>).*?$/$1/gs;
   $content =~ s/^\s*$//gms;
+
+  # clean up toc links
+  #$content =~ s/<a href="\?.*?#/<a href="#/g;
+
+  # remove base
+  #$content =~ s/<base.*//;
 
   # clean url params in anchors 
   $content =~ s/(href=["'])\?.*(#[^"'\s])+/$1$2/g;
@@ -99,6 +102,10 @@ sub completePageHandler {
 
   # create output filename
   my ($pdfFilePath, $pdfFile) = getFileName($baseWeb, $baseTopic);
+
+  # convert to utf8
+  $content = Encode::decode($siteCharSet, $content) unless $Foswiki::UNICODE;
+  $content = Encode::encode_utf8($content);
 
   # creater html file
   binmode($htmlFile);
@@ -125,8 +132,8 @@ sub completePageHandler {
 
   writeDebug("htmlFile=" . $htmlFile->filename);
   writeDebug("output=$output");
-  #writeDebug("exit=$exit");
-  #writeDebug("error=$error");
+  writeDebug("exit=$exit");
+  writeDebug("error=$error");
 
   if ($exit) {
     throw Error::Simple("execution of weasy failed ($exit) \n\n$error");
@@ -134,7 +141,6 @@ sub completePageHandler {
 
   my $query = Foswiki::Func::getCgiQuery();
   if (($query->param("pdfdisposition") || '') eq 'inline') {
-    my $session = $Foswiki::Plugins::SESSION;
     my $pdf = readFile($pdfFilePath);
     $session->{response}->body($pdf);
 
@@ -143,8 +149,11 @@ sub completePageHandler {
     $ENV{'HTTP2'} = ''; 
   } else {
     my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
+    writeDebug("redirecting to $url");
     Foswiki::Func::redirectCgiQuery($query, $url);
   }
+
+  $_[0] = ""; # don't send back anything else
 }
 
 ###############################################################################
@@ -191,7 +200,12 @@ sub toFileUrl {
 sub modifyHeaderHandler {
   my ($hopts, $request) = @_;
 
-  $hopts->{'Content-Disposition'} = "inline;filename=$baseTopic.pdf" if $doit;
+  my $session = $Foswiki::Plugins::SESSION;
+  my $baseWeb = $session->{webName};
+  my $baseTopic = $session->{topicName};
+  my $context = Foswiki::Func::getContext();
+
+  $hopts->{'Content-Disposition'} = "inline;filename=$baseTopic.pdf" if $context->{genpdf_doit};
 }
 
 ###############################################################################
