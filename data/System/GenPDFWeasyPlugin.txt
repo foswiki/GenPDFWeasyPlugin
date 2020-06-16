@@ -11,14 +11,14 @@ You will have to download this tool and install it on the Foswiki Server before 
 
 Get a PDF by adding =contenttype=application/pdf= to the view url like this:
 <verbatim class="tml">
-%SCRIPTURL{"view"}/%WEB%/%TOPIC%?contenttype=application/pdf&cover=print
+%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?contenttype=application/pdf&cover=print
 </verbatim>
 
 Optionally an url parameter =outfile= can be used to specifiy the target filename of the pdf being generated.
 If not specified explicitly it defaults to =genpdf_%!TOPIC%.pdf=
 
 <verbatim class="tml">
-%SCRIPTURL{"view"}/%WEB%/%TOPIC%?contenttype=application/pdf&cover=print&outfile=myreport.pdf
+%SCRIPTURL{"view"}%/%WEB%/%TOPIC%?contenttype=application/pdf&cover=print&outfile=myreport.pdf
 </verbatim>
 
 ---++ Installation Instructions
