@@ -35,7 +35,7 @@ use File::Path ();
 use Encode ();
 use File::Temp ();
 
-our $VERSION = '2.02';
+our $VERSION = '3.00';
 our $RELEASE = '%$RELEASE%';
 our $SHORTDESCRIPTION = 'Generate PDF using <nop>WeasyPrint';
 our $LICENSECODE = '%$LICENSECODE%';
