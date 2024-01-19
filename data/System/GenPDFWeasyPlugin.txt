@@ -1,4 +1,4 @@
-%META:TOPICINFO{author="ProjectContributor" comment="" date="1573557364" format="1.1" version="1"}%
+%META:TOPICINFO{author="micha" comment="" date="1683735518" format="1.1" version="10"}%
 ---+!! %TOPIC%
 %FORMFIELD{"Description"}%
 
@@ -27,16 +27,18 @@ Installation instructions for =weasyprint= can be found on [[http://weasyprint.o
 For a Debian/Ubuntu based installation use this:
 
 <verbatim class="bash">
-apt-get install python-dev python-pip python-lxml \
-                libcairo2 libpango1.0-0 libgdk-pixbuf2.0-0 \
-                libffi-dev shared-mime-info
-pip install WeasyPrint
+apt-get install \
+   python3-pip \
+   libpangoft2-1.0-0 \
+   libpango1.0-0 \
+   python3-gi 
+pip3 install WeasyPrint
 </verbatim>
 
 Test with 
 
 <verbatim class="bash">
-weasyprint --help
+weasyprint --version
 </verbatim>
 
 Make sure that you record the full path to the binary and configure this plugin accordingly.
@@ -70,6 +72,7 @@ apt-get install fonts-font-awesome fonts-lato fonts-roboto ttf-mscorefonts-insta
 
 ---++ Change History
 %TABLE{columnwidths="7em" tablewidth="100%"}%
+|  19 Jan 2024 | use the PRINT_TEMPLATE as a view template if present |
 |  12 Nov 2019 | don't append the html page to the end of the pdf output |
 |  11 Jul 2016 | added option =pdfdisposition= to inline or redirect content; remove leftovers from copy-pasting <nop>GenPDFPrincePlugin |
 |  16 Sep 2015 | initial release |
@@ -80,7 +83,7 @@ apt-get install fonts-font-awesome fonts-lato fonts-roboto ttf-mscorefonts-insta
 %META:FIELD{name="Release" title="Release" value="%25$RELEASE%25"}%
 %META:FIELD{name="Description" title="Description" value="%25$SHORTDESCRIPTION%25"}%
 %META:FIELD{name="Repository" title="Repository" value="https://github.com/foswiki/%25$ROOTMODULE%25"}%
-%META:FIELD{name="Copyright" title="Copyright" value="2015-2019 Michael Daum http://michaeldaumconsulting.com"}%
+%META:FIELD{name="Copyright" title="Copyright" value="2015-2024 Michael Daum"}%
 %META:FIELD{name="License" title="License" value="GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]])"}%
 %META:FIELD{name="Home" title="Home" value="https://foswiki.org/Extensions/%25$ROOTMODULE%25"}%
 %META:FIELD{name="Support" title="Support" value="https://foswiki.org/Support/%25$ROOTMODULE%25"}%

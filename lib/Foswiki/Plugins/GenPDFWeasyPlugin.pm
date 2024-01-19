@@ -1,6 +1,6 @@
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2015-2019 Michael Daum http://michaeldaumconsulting.com
+# Copyright (C) 2015-2024 Michael Daum http://michaeldaumconsulting.com
 #
 # This license applies to GenPDFPrincePlugin *and also to any derivatives*
 #
@@ -17,6 +17,14 @@
 
 package Foswiki::Plugins::GenPDFWeasyPlugin;
 
+=begin TML
+
+---+ package Foswiki::Plugins::GenPDFWeasyPlugin
+
+base class to hook into the foswiki core
+
+=cut
+
 use strict;
 use warnings;
 
@@ -27,19 +35,22 @@ use File::Path ();
 use Encode ();
 use File::Temp ();
 
-our $VERSION = '2.01';
-our $RELEASE = '12 Nov 2019';
+our $VERSION = '2.02';
+our $RELEASE = '%$RELEASE%';
 our $SHORTDESCRIPTION = 'Generate PDF using <nop>WeasyPrint';
+our $LICENSECODE = '%$LICENSECODE%';
 our $NO_PREFS_IN_TOPIC = 1;
 
 use constant TRACE => 0; # toggle me
 
-###############################################################################
-sub writeDebug {
-  print STDERR "GenPDFWeasyPlugin - $_[0]\n" if TRACE;
-}
+=begin TML
 
-###############################################################################
+---++ initPlugin($topic, $web, $user) -> $boolean
+
+initialize the plugin, automatically called during the core initialization process
+
+=cut
+
 sub initPlugin {
 
   if ($Foswiki::Plugins::VERSION < 2.0) {
@@ -55,6 +66,10 @@ sub initPlugin {
   if ($contenttype eq "application/pdf") {
     $context->{genpdf_doit} = 1;
     $context->{static} = 1;
+
+    my $template = Foswiki::Func::getPreferencesValue("PRINT_TEMPLATE");
+    Foswiki::Func::setPreferencesValue("VIEW_TEMPLATE", $template) if $template;
+    
   } else {
     $context->{genpdf_doit} = 0;
   }
@@ -62,7 +77,14 @@ sub initPlugin {
   return 1;
 }
 
-###############################################################################
+=begin TML
+
+---++ ObjectMethod completePageHandler()
+
+some minor fixes to the html before generating pdf for it
+
+=cut
+
 sub completePageHandler {
   #my($html, $httpHeaders) = @_;
 
@@ -110,15 +132,15 @@ sub completePageHandler {
   # creater html file
   binmode($htmlFile);
   print $htmlFile $content;
-  writeDebug("htmlFile=" . $htmlFile->filename);
+  _writeDebug("htmlFile=" . $htmlFile->filename);
 
   # create print command
   my $pubUrl = getPubUrl();
   my $cmd = $Foswiki::cfg{GenPDFWeasyPlugin}{WeasyCmd}
     || '/usr/local/bin/weasyprint --base-url %BASEURL|U% --media-type print --encoding utf-8 %INFILE|F% %OUTFILE|F%';
 
-  writeDebug("cmd=$cmd");
-  writeDebug("BASEURL=$pubUrl");
+  _writeDebug("cmd=$cmd");
+  _writeDebug("BASEURL=$pubUrl");
 
   # execute
   my ($output, $exit, $error) = Foswiki::Sandbox->sysCommand(
@@ -130,10 +152,10 @@ sub completePageHandler {
 
   local $/ = undef;
 
-  writeDebug("htmlFile=" . $htmlFile->filename);
-  writeDebug("output=$output");
-  writeDebug("exit=$exit");
-  writeDebug("error=$error");
+  _writeDebug("htmlFile=" . $htmlFile->filename);
+  _writeDebug("output=$output");
+  _writeDebug("exit=$exit");
+  _writeDebug("error=$error");
 
   if ($exit) {
     throw Error::Simple("execution of weasy failed ($exit) \n\n$error");
@@ -149,14 +171,21 @@ sub completePageHandler {
     $ENV{'HTTP2'} = ''; 
   } else {
     my $url = $Foswiki::cfg{PubUrlPath} . '/' . $baseWeb . '/' . $baseTopic . '/' . $pdfFile . '?t=' . time();
-    writeDebug("redirecting to $url");
+    _writeDebug("redirecting to $url");
     Foswiki::Func::redirectCgiQuery($query, $url);
   }
 
   $_[0] = ""; # don't send back anything else
 }
 
-###############################################################################
+=begin TML
+
+---++ ObjectMethod getFileName($web, $topic)
+
+returns the genpdf_...pdf file for the given web.topic
+
+=cut
+
 sub getFileName {
   my ($web, $topic) = @_;
 
@@ -176,7 +205,14 @@ sub getFileName {
   return ($filePath, $fileName);
 }
 
-###############################################################################
+=begin TML
+
+---++ ObjectMethod toFileUrl($url) -> $fileUrl
+
+converts a https:// url to a matching file:// url
+
+=cut
+
 sub toFileUrl {
   my $url = shift;
 
@@ -189,14 +225,21 @@ sub toFileUrl {
     $fileUrl =~ s/\?.*$//;
     $fileUrl = "file://".$Foswiki::cfg{PubDir}.$fileUrl;
   } else {
-    #writeDebug("url=$url does not point to a local asset (pattern=$localServerPattern)");
+    #_writeDebug("url=$url does not point to a local asset (pattern=$localServerPattern)");
   }
 
-  #writeDebug("url=$url, fileUrl=$fileUrl");
+  #_writeDebug("url=$url, fileUrl=$fileUrl");
   return $fileUrl;
 }
 
-###############################################################################
+=begin TML
+
+---++ ObjectMethod modifyHeaderHandler($request)
+
+adds content-disposition headers during pdf generation
+
+=cut
+
 sub modifyHeaderHandler {
   my ($hopts, $request) = @_;
 
@@ -208,7 +251,14 @@ sub modifyHeaderHandler {
   $hopts->{'Content-Disposition'} = "inline;filename=$baseTopic.pdf" if $context->{genpdf_doit};
 }
 
-###############################################################################
+=begin TML
+
+---++ ObjectMethod getPubUrl()
+
+compatibility layer
+
+=cut
+
 sub getPubUrl {
   my $session = $Foswiki::Plugins::SESSION;
 
@@ -221,8 +271,16 @@ sub getPubUrl {
   return Foswiki::Func::getPubUrlPath(undef, undef, undef, absolute=>1);
 }
 
-###############################################################################
+=begin TML
+
+---++ ObjectMethod readFile($name)
+
+reads a pdf file from disk if delivering it inline instead of redirecting the browser to it
+
+=cut
+
 sub readFile {
+
   my $name = shift;
   my $data = '';
   my $IN_FILE;
@@ -237,5 +295,11 @@ sub readFile {
   $data = '' unless $data;    # no undefined
   return $data;
 }
+
+# static helper
+sub _writeDebug {
+  print STDERR "GenPDFWeasyPlugin - $_[0]\n" if TRACE;
+}
+
 
 1;
